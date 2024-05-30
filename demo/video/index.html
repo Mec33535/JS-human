@@ -6,16 +6,16 @@
   <title>Human</title>
   <meta name="viewport" content="width=device-width" id="viewport">
   <meta name="keywords" content="Human">
-  <meta name="description" content="Human: Demo; Author: Vladimir Mandic <https://github.com/vladmandic>">
+  <meta name="description" content=" ">
   <link rel="manifest" href="../manifest.webmanifest">
-  <link rel="shortcut icon" href="../../favicon.ico" type="image/x-icon">
+  <link rel="shortcut icon" href="" type="image/x-icon">
   <style>
     @font-face {
       font-family: 'Lato';
       font-display: swap;
       font-style: normal;
       font-weight: 100;
-      src: local('Lato'), url('../../assets/lato-light.woff2')
+      src: local('Lato'), url('../lato-light.woff2')
     }
 
     body {
@@ -28,12 +28,13 @@
       overflow: hidden;
       width: 100vw;
       height: 100vh;
+      overflow-x: auto;
     }
   </style>
 </head>
 
 <body>
-  <canvas id="canvas" style="margin: 0 auto; width: 100%"></canvas>
+  <canvas id="canvas" style="margin: 0 auto; width: 100vw"></canvas>
   <pre id="log" style="padding: 8px; position: fixed; bottom: 0"></pre>
   <script type="module">
     import * as H from '../../dist/human.esm.js'; // equivalent of import @vladmandic/Human
@@ -41,12 +42,13 @@
     const humanConfig = { // user configuration for human, used to fine-tune behavior
       modelBasePath: '../../models', // models can be loaded directly from cdn as well
       filter: { enabled: true, equalization: true, flip: false },
-      face: { enabled: true, detector: { rotation: false }, mesh: { enabled: true }, attention: { enabled: false }, iris: { enabled: true }, description: { enabled: true }, emotion: { enabled: true } },
+      face: { enabled: true, liveness: { enabled: true }, detector: { rotation: false }, mesh: { enabled: true }, attention: { enabled: false }, iris: { enabled: true }, description: { enabled: true }, emotion: { enabled: true } },
       body: { enabled: false },
-      hand: { enabled: true, maxDetected: '2' },
-      gesture: { enabled: true },
+      hand: { enabled: true, maxDetected: '1' },
+      gesture: { enabled: false },
       object: { enabled: false },
       segmentation: { enabled: false },
+
     };
     const human = new H.Human(humanConfig); // create instance of human with overrides from user configuration
     const canvas = document.getElementById('canvas'); // output canvas to draw both webcam and detection results
@@ -54,13 +56,28 @@
     async function drawLoop() { // main screen refresh loop
       const interpolated = human.next(); // get smoothened result using last-known results which are continously updated based on input webcam video
       human.draw.canvas(human.webcam.element, canvas); // draw webcam video to screen canvas // better than using procesed image as this loop happens faster than processing loop
-      await human.draw.all(canvas, interpolated); // draw labels, boxes, lines, etc.
-      setTimeout(drawLoop, 30); // use to slow down refresh from max refresh rate to target of 1000/30 ~ 30 fps
+      const drawoptions = {
+        drawGaze: false,
+        //useCurves: true,
+        drawBoxes: true,
+        alpha: 0.5,
+        faceLabels: `face
+      confidence: [score]%
+      [gender] [genderScore]%
+      age: [age] years
+      distance: [distance]cm
+      live: [live]%
+      [emotions]
+      roll: [roll]° yaw:[yaw]° pitch:[pitch]°
+      gaze: [gaze]°`,
+      };
+      await human.draw.all(canvas, interpolated, drawoptions); // draw labels, boxes, lines, etc.
+      setTimeout(drawLoop, 20); // use to slow down refresh from max refresh rate to target of 1000/30 ~ 30 fps if it's 30
     }
 
     async function main() { // main entry point
-      document.getElementById('log').innerHTML = `human version: ${human.version} | tfjs version: ${human.tf.version['tfjs-core']}<br>platform: ${human.env.platform} | agent ${human.env.agent}`;
-      await human.webcam.start({ crop: true }); // find webcam and start it
+      //document.getElementById('log').innerHTML = `human version: ${human.version} | tfjs version: ${human.tf.version['tfjs-core']}<br>platform: ${human.env.platform} | agent ${human.env.agent}`;
+      await human.webcam.start({ crop: false }); // find webcam and start it
       human.video(human.webcam.element); // instruct human to continously detect video frames
       canvas.width = human.webcam.width; // set canvas resolution to input webcam native resolution
       canvas.height = human.webcam.height;
@@ -72,6 +89,8 @@
     }
 
     window.onload = main;
+    console.log("fps: " + 1000 / 20);
+
   </script>
 </body>
 
