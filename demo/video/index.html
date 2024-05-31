@@ -28,7 +28,6 @@
       overflow: hidden;
       width: 100vw;
       height: 100vh;
-      overflow-x: auto;
     }
   </style>
 </head>
@@ -42,10 +41,10 @@
     const humanConfig = { // user configuration for human, used to fine-tune behavior
       modelBasePath: '../../models', // models can be loaded directly from cdn as well
       filter: { enabled: true, equalization: true, flip: false },
-      face: { enabled: true, liveness: { enabled: true }, detector: { rotation: false }, mesh: { enabled: true }, attention: { enabled: false }, iris: { enabled: true }, description: { enabled: true }, emotion: { enabled: true } },
+      face: { enabled: true, detector: { rotation: false }, mesh: { enabled: true }, attention: { enabled: false }, iris: { enabled: true }, description: { enabled: true }, emotion: { enabled: true } },
       body: { enabled: false },
       hand: { enabled: true, maxDetected: '1' },
-      gesture: { enabled: false },
+      gesture: { enabled: true },
       object: { enabled: false },
       segmentation: { enabled: false },
 
@@ -56,28 +55,14 @@
     async function drawLoop() { // main screen refresh loop
       const interpolated = human.next(); // get smoothened result using last-known results which are continously updated based on input webcam video
       human.draw.canvas(human.webcam.element, canvas); // draw webcam video to screen canvas // better than using procesed image as this loop happens faster than processing loop
-      const drawoptions = {
-        drawGaze: false,
-        //useCurves: true,
-        drawBoxes: true,
-        alpha: 0.5,
-        faceLabels: `face
-      confidence: [score]%
-      [gender] [genderScore]%
-      age: [age] years
-      distance: [distance]cm
-      live: [live]%
-      [emotions]
-      roll: [roll]° yaw:[yaw]° pitch:[pitch]°
-      gaze: [gaze]°`,
-      };
-      await human.draw.all(canvas, interpolated, drawoptions); // draw labels, boxes, lines, etc.
-      setTimeout(drawLoop, 20); // use to slow down refresh from max refresh rate to target of 1000/30 ~ 30 fps if it's 30
+
+      await human.draw.all(canvas, interpolated); // draw labels, boxes, lines, etc.
+      setTimeout(drawLoop, 30); // use to slow down refresh from max refresh rate to target of 1000/30 ~ 30 fps if it's 30
     }
 
     async function main() { // main entry point
       //document.getElementById('log').innerHTML = `human version: ${human.version} | tfjs version: ${human.tf.version['tfjs-core']}<br>platform: ${human.env.platform} | agent ${human.env.agent}`;
-      await human.webcam.start({ crop: false }); // find webcam and start it
+      await human.webcam.start({ crop: true }); // find webcam and start it
       human.video(human.webcam.element); // instruct human to continously detect video frames
       canvas.width = human.webcam.width; // set canvas resolution to input webcam native resolution
       canvas.height = human.webcam.height;
@@ -89,7 +74,7 @@
     }
 
     window.onload = main;
-    console.log("fps: " + 1000 / 20);
+    console.log("fps: " + 1000 / 30);
 
   </script>
 </body>

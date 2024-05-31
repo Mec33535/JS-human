@@ -39770,7 +39770,7 @@ function drawLabels(f, ctx) {
     l = replace(l, "[pitch]", rad2deg(f.rotation.angle.pitch));
   if ((_i2 = (_h2 = f.rotation) == null ? void 0 : _h2.gaze) == null ? void 0 : _i2.bearing)
     l = replace(l, "[gaze]", rad2deg(f.rotation.gaze.bearing));
-  labels(ctx, l, f.box[0], f.box[1], localOptions);
+  labels(ctx, l, f.box[0] + 100, f.box[1], localOptions);
 }
 function drawIrisElipse(f, ctx) {
   var _a, _b, _c2, _d2;
@@ -39878,7 +39878,7 @@ function drawFacePoints(f, ctx) {
 }
 function drawFaceBoxes(f, ctx) {
   if (localOptions.drawBoxes) {
-    rect(ctx, f.box[0], f.box[1], f.box[2], f.box[3], localOptions);
+    rect(ctx, f.box[0] - 35, f.box[1] - 35, f.box[2] + 70, f.box[3] + 70, localOptions);
   }
 }
 function face(inCanvas2, result, drawOptions) {
